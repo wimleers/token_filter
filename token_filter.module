@@ -1,53 +1,40 @@
 <?php
 
-// implementation of hook_filter to create the checkbox filter
-function token_filter_filter($op, $delta = 0, $format = -1, $text = '' ) {
-
-  switch($op) {
-    case 'list':
-      return array (0 => t('Token filter'));
-    case 'description':
-      return t('Allows you to use token values in a filter enclosed. Eg. [token global site-name] or [token user user-name]');
-    case 'settings':
-      break;
-    case 'no cache':
-      return TRUE;
-    case 'prepare':
-      return $text;
-    case 'process':
-      // generate some header code, form tag and we save the node id so that the 
-      // javascript has a convenient place to get it from
-      if (strpos($text,"[token") === false) {
-        return $text;
-      }
-      else {
-        $output .= preg_replace_callback("|\[token ([^ ]*)([^]]*)\]|i",'token_filter_replacetoken',$text);
-        return $output;
-      }
-      break;
-    default:
-      return $text;
-  } 
+/**
+ * Implements hook_filter_info().
+ *
+ * Adds the Token filter to the textx format options.
+ */
+function token_filter_filter_info() {
+  $filters['filter_tokens'] = array(
+    'title' => t('Replace tokens'),
+    'description' => t('The usage of this filter should be restricted to trusted users only as tokens with sensitive data could be exposed.'),
+    'process callback' => '_token_filter_filter_tokens',
+    'tips callback' => '_token_filter_filter_tips',
+    'cache' => FALSE,
+  );
+  return $filters;
 }
 
-// helper function for preg_replace_callback to generate the html for each token filter
-function token_filter_replacetoken($matches) {
-  global $user;
-  $type  = $matches[1];
-  $token = $matches[2];
-  switch ($type) {
-    case 'global':
-      $object = NULL;
-      break;
-    case 'user' :
-      $object = $user;
-      break;
-    default :
-      drupal_set_message("Filter Error: token_filter doesn't yet handle objects of type $type",'error');
-      // Return the provided token so at least you can see which one is giving the error in the text
-      return "%$token";
-    } 
-  $output = token_replace($token, $type, $object = NULL, $leading = '', $trailing = '');
-  return $output;
+/**
+ * Filter process callback for the token input filter.
+ */
+function _token_filter_filter_tokens($text, $filter, $format, $langcode, $cache, $cache_id) {
+  $data = array();
+  $options = array();
+  return token_replace($text, $data, $options);
 }
 
+/**
+ * Filter tip callback for the token input filter.
+ */
+function _token_filter_filter_tips($filter, $format, $long = FALSE) {
+  if ($long) {
+    $output = t('Global tokens will be replaced with their respective token values (e.g. [site:name] or [current-page:title]). The following is a list of the tokens that are available:');
+    $output .= theme('token_tree', array('click_insert' => FALSE));
+    return $output;
+  }
+  else {
+    return t('Global tokens will be replaced with their respective token values (e.g. [site:name] or [current-page:title]).');
+  }
+}
