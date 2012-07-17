@@ -6,6 +6,84 @@
  */
 
 /**
+ * Implements hook_menu().
+ */
+function token_filter_menu() {
+  $items = array();
+  $items['admin/macro/render/token_filter/%/%'] = array(
+    'access arguments'  => array('TRUE'),
+    'access callback'   => TRUE,
+    'page callback'     => 'token_filter_macro_render',
+    'page arguments'    => array(4, 5),
+    // 'delivery callback' => 'ajax_deliver',
+    // 'theme callback'    => 'ajax_base_page_theme',
+  );
+  $items['admin/macro/list/token_filter/%'] = array(
+    'access arguments'  => array('TRUE'),
+    'access callback'   => TRUE,
+    'page callback'     => 'token_filter_macro_list',
+    'page arguments'    => array(4),
+    // 'delivery callback' => 'ajax_deliver',
+    // 'theme callback'    => 'ajax_base_page_theme',
+  );
+  return $items;
+}
+
+
+function token_filter_macro_render($macro, $context) {
+  // Detect context.
+  $contexts = array();
+  foreach (explode(',', $context) as $c) {
+    $parts = explode(':', $c);
+    $context_type = $parts[0];
+    switch ($context_type) {
+      case 'entity':
+        $contexts['entity'] = array(
+          'type' => $parts[1],
+          'id' => $parts[2],
+        );
+        break;
+    }
+  }
+
+  // Set up context.
+  $data = array();
+  if (isset($contexts['entity'])) {
+    $id = $contexts['entity']['id'];
+    $type = $contexts['entity']['type'];
+    $entities = entity_load($type, array($id));
+    $token_type = token_get_entity_mapping('entity', $type);
+    $data[$token_type] = $entities[$id];
+
+    // Override "current path".
+    $actual_path = $_GET['q'];
+    $uri = entity_uri($type, $entities[$id]);
+    $_GET['q'] = $uri['path'];
+  }
+
+  $expanded_macro = token_replace($macro, $data, array(
+    // 'callback' => 'foo', -> only necessary if we also want wrapped tokens to be returned.
+    'clear' => FALSE,
+    'sanitize' => TRUE,
+  ));
+
+  // Restore "current path".
+  if (isset($contexts['entity'])) {
+    $_GET['q'] = $actual_path;
+  }
+
+  print drupal_json_encode(array($macro => $expanded_macro));
+  exit;
+}
+
+function token_filter_macro_list($context) {
+  // @TODO: use $context
+  $info = token_info();
+  print drupal_json_encode($info['tokens']);
+  exit;
+}
+
+/**
  * Implements hook_filter_info().
  */
 function token_filter_filter_info() {
