@@ -22,9 +22,11 @@ function token_filter_filter_info() {
 /**
  * Filter process callback for the token text filter.
  */
-function _token_filter_filter_tokens($text, $filter, $format, $langcode, $cache, $cache_id) {
+function _token_filter_filter_tokens($text, $filter, $format, $langcode, $cache, $cache_id, $wrap_macro_tags = FALSE) {
   $data = array();
-  $options = array();
+  $options = array(
+    'callback' => ($wrap_macro_tags) ? '_token_filter_wrap_macro_tags' : NULL,
+  );
 
   // Attempt to figure out the current context based on the current backtrace.
   $backtrace = debug_backtrace();
@@ -66,5 +68,14 @@ function _token_filter_filter_tips($filter, $format, $long = FALSE) {
   }
   else {
     return t('Global tokens will be replaced with their respective token values (e.g. [site:name] or [current-page:title]).');
+  }
+}
+
+/**
+ * Callback for token_replace(); wraps token values for in-place editing.
+ */
+function _token_filter_wrap_macro_tags(&$replacements, $data, $options) {
+  foreach ($replacements as $token => $value) {
+    $replacements[$token] = filter_wrap_macro($token, $value, 'token_filter');
   }
 }
