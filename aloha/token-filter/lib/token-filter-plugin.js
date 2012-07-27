@@ -82,8 +82,21 @@ define([
 		clean(message.editable.obj);
 	});
 
-	BlockManager.bind('block-selection-change', function(blocks){
+	BlockManager.bind('block-selection-change', function(highlightedBlocks){
 	});
+
+	BlockManager.bind('block-activate', function(activatedBlocks) {
+		var $element = activatedBlocks[0].$element;
+		$('.aloha-token-value', $element).hide();
+		$('.aloha-token-select', $element).show();
+	});
+
+	BlockManager.bind('block-deactivate', function(deactivatedBlocks) {
+		var $element = deactivatedBlocks[0].$element;
+		$('.aloha-token-select', $element).hide();
+		$('.aloha-token-value', $element).show();
+	});
+
 
 	var TokenFilterBlock = Block.AbstractBlock.extend({
 		title: 'Token',
@@ -105,7 +118,7 @@ define([
 		},
 		_select: function($element) {
 			var token = $element.data('macro');
-			var select = $('<select>');
+			var select = $('<select>', {'class': 'aloha-token-select'});
 			var selected = false;
 			for (var i = 0; i< menu.length; i++) {
 				var option = $('<option>', {'text': menu[i].text});
@@ -133,6 +146,8 @@ define([
 					value.text(newValue);
 				}, 'json');
 			});
+			// Initially hidden!
+			select.hide();
 			return select;
 		},
 		renderBlockHandlesIfNeeded: function() {
