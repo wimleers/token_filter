@@ -140,8 +140,7 @@ define([
 				$.get(settings['macroRender'] + '/[' + sel + ']/context', function(data) {
 					var newValue = data['[' + sel + ']'];
 					if (null == newValue || newValue === '[' + sel + ']') {
-						console.log('token_filter: no data for ' + sel);
-						newValue = 'XX';
+						newValue = Drupal.t('Failed to render the selected token.');
 					}
 					$('.aloha-token-value', $element).text(newValue);
 				}, 'json');
