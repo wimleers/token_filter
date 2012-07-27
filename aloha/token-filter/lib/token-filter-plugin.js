@@ -131,6 +131,9 @@ define([
 			$element.append(value);
 			postProcessCallback();
 		},
+		renderBlockHandlesIfNeeded: function() {
+			// No block handles!
+		},
 		update: function ($element, postProcessCallback) {
 			postProcessCallback();
 		}
