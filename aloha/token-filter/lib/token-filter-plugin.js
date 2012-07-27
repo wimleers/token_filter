@@ -97,8 +97,14 @@ define([
 				postProcessCallback();
 				return;
 			}
-			var token = $element.data('macro');
+
 			var value = $('<span>', {'class': 'aloha-token-value'}).append($element.contents());
+			$element.prepend(this._select($element));
+			$element.append(value);
+			postProcessCallback();
+		},
+		_select: function($element) {
+			var token = $element.data('macro');
 			var select = $('<select>');
 			var selected = false;
 			for (var i = 0; i< menu.length; i++) {
@@ -127,9 +133,7 @@ define([
 					value.text(newValue);
 				}, 'json');
 			});
-			$element.prepend(select);
-			$element.append(value);
-			postProcessCallback();
+			return select;
 		},
 		renderBlockHandlesIfNeeded: function() {
 			// No block handles!
