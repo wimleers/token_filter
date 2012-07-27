@@ -62,6 +62,8 @@ define([
 	}, 'json');
 
 	Ui.adopt('TokenFilterInsert', Button, {
+		tooltip: 'Insert Token',
+		text: 'Token',
 		click: function() {
 		}
 	});
