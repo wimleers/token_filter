@@ -143,7 +143,7 @@ define([
 						console.log('token_filter: no data for ' + sel);
 						newValue = 'XX';
 					}
-					value.text(newValue);
+					$('.aloha-token-value', $element).text(newValue);
 				}, 'json');
 			});
 			// Initially hidden!
